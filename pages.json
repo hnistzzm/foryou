@@ -24,6 +24,13 @@
 				"navigationBarTitleText": "打卡",
 				"navigationStyle": "custom" 
 			}
+		},
+		{
+			"path": "pages/home/ExchangeGifts",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom" 
+			}
 		}
 	],
 	"globalStyle": {

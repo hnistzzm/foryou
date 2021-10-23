@@ -2,33 +2,23 @@
 	<view class="container">
 		<view class="top-info">
 			<view class="user-info">
-				<!-- <div class="user-info-pri">
-					<u-image  height="2rem" width="2rem" :src="src" shape="circle"></u-image>
-					<p>张振明</p>
-				</div>
-				<p>积分:666</p> -->
 				<u-image  height="2rem" width="2rem" :src="src" shape="circle"></u-image>
 				<div class="user-info-pri">
 					<p>张振明张振明张振明</p>
-					<span class="user-info-pri-clock">连续签到120天</span>
-					<!-- <text>sss</text> -->
+					<span class="user-info-pri-clock">积分: <span style="color:rgb(249,231,0) ;">800</span></span>
 				</div>
 			</view>
-<!-- 			<view class="btn-grounp">
-				<u-button type="primary" shape="circle" @click="punchClockRouter">打卡</u-button>
-				<u-button type="primary" shape="circle" @click="getWeatherInfo">天气</u-button>
-			</view> -->
 		</view>
 		<view class="options-box">
 			<ul class="option-lists">
-				<li class="option-item">
+				<li class="option-item" @click="punchClockRouter">
 					<u-image
 						height="2rem"
 						width="2rem"
 						:src="'../../static/icon/signin.png'"
 						class="option-item-image">
 					</u-image>
-					打卡
+					<span>打卡</span>
 				</li>
 				<li class="option-item">
 					<u-image 
@@ -37,7 +27,7 @@
 						:src="'../../static/icon/luckdraw.png'"
 						class="option-item-image">
 					</u-image>
-					抽奖
+					<span>抽奖</span>
 				</li>
 				<li class="option-item" @click="getWeatherInfo">
 					<u-image 
@@ -46,26 +36,42 @@
 						:src="'../../static/icon/weather.png'"
 						class="option-item-image">
 					</u-image>
-					天气
+					<span>天气</span>
+				</li>
+				<li class="option-item" @click="exchangeGiftsRouter">
+					<u-image 
+						height="2rem"
+						width="2rem"
+						:src="'../../static/icon/gift.png'"
+						class="option-item-image">
+					</u-image>
+					<span>兑奖</span>
 				</li>
 			</ul>
 		</view>
 		<view class="home-card">
-			<u-image 
-			width="100vw"
-			height="75vh"
-			:src="'../../static/photo/homecard.jpg'">
+			<div class="home-card-container">
+				<div class="now-date">
+					<p style="font-size: 1.5rem;">11</p>
+					<p style="font-size: 0.7rem;">2020.03</p>
+				</div>
 				
-			</u-image>
+				<div class="getup-time">
+					<p style="color: #FFFFFF;font-size: 0.6rem;">今日早起</p>
+					<p style="color:rgb(249,231,0);font-size: 1.5rem;">8:30</p>
+				</div>
+				<button class="signin-ime-btn">
+					<u-icon name="map"></u-icon>
+					<span>立即打卡</span>
+				</button>
+			</div>
 		</view>
 		<u-modal v-model="show" title="今日天气">
 			城市:{{weatherInfo.cityName}}
 			天气:{{weatherInfo.tq}}
-			天气:{{weatherInfo.qw}}
+			气温:{{weatherInfo.qw}}
 			风力:{{weatherInfo.fl}}
 		</u-modal>
-		
-		
 	</view>
 </template>
 
@@ -100,6 +106,11 @@
 			punchClockRouter(){
 				uni.navigateTo({
 					url:'./SignIn'
+				})
+			},
+			exchangeGiftsRouter(){
+				uni.navigateTo({
+					url:'./ExchangeGifts'
 				})
 			}
 		},
@@ -152,11 +163,9 @@
 	margin-top: 3vh;
 	height: 10vh;
 	width: 100%;
-	border: 1px solid red;
+	/* border: 1px solid red; */
 }
 .option-lists{
-	/* width: 100%; */
-	border: 1px solid yellow;
 	height: 100%;
 	color: #FFFFFF;
 	list-style: none;
@@ -175,15 +184,47 @@
 }
 .home-card{
 	position: absolute;
-	width: 100%;
+	width:100vw;
+	height:75vh;
 	bottom: 0;
 	height: 75vh;
 	border: 1px solid red;
 	background-color: #FFFFFF;
 	border-radius: 20px;
-	
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
-
-
+.home-card-container{
+	width: 95vw;
+	height: 70vh;
+	border-radius: 20px;
+	background: url('../../static/photo/homecard.jpg');
+	position: relative;
+}
+.now-date{
+	color: #FFFFFF;
+	font-weight: 600;
+	position: absolute;
+	top: 5%;
+	right: 5%;
+}
+.getup-time{
+	position: absolute;
+	left: 5%;
+	top: 40%;
+	text-align: center;
+}
+.signin-ime-btn{
+	width: 8rem;
+	border: none;
+	border-radius: 20px;
+	background-color:rgb(249,231,0) ;
+	font-size: 0.8rem;
+	position: absolute;
+	left: 50%;
+	bottom: 20%;
+	transform: translate(-50%,-50%);
+}
 	
 </style>
