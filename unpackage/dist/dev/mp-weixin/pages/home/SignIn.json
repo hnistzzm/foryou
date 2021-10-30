@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "打卡",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "u-navbar": "/uview-ui/components/u-navbar/u-navbar",
+    "u-button": "/uview-ui/components/u-button/u-button",
+    "u-image": "/uview-ui/components/u-image/u-image"
+  }
+}

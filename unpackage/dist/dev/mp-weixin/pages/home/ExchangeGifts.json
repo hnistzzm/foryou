@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "ExchangeGifts-u-waterfall-left": "/pages/home/ExchangeGifts-u-waterfall-left",
+    "ExchangeGifts-u-waterfall-right": "/pages/home/ExchangeGifts-u-waterfall-right",
+    "u-navbar": "/uview-ui/components/u-navbar/u-navbar",
+    "u-image": "/uview-ui/components/u-image/u-image",
+    "u-waterfall": "/uview-ui/components/u-waterfall/u-waterfall",
+    "u-modal": "/uview-ui/components/u-modal/u-modal"
+  }
+}

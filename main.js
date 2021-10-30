@@ -3,11 +3,17 @@ import App from './App'
 import Vue from 'vue'
 import axios from 'axios'
 import uView from 'uview-ui';
+import {mixin} from './mixin/mixin'
 import 'animate.css'
+
+import Http from '@/common/api/request.js'
+Vue.prototype.$http = Http
 Vue.use(uView);
-axios.defaults.baseURL="http://localhost:8084/foryou"
-axios.defaults.withCredentials=false
-Vue.prototype.$http=axios
+Vue.mixin(mixin)
+const res = uni.getSystemInfoSync();
+let fontSize = res.screenWidth/20 + 'px';
+console.log("fonrsize",fontSize);
+Vue.prototype.$footFontSize = fontSize;
 Vue.prototype.HOST = "/"
 
 

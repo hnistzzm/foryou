@@ -1,11 +1,17 @@
 <template>
 	<view class="container">
+		<page-meta :root-font-size="fontSize"></page-meta>	
 		<view class="top-info">
 			<view class="user-info">
 				<u-image  height="2rem" width="2rem" :src="src" shape="circle"></u-image>
 				<div class="user-info-pri">
-					<p>张振明张振明张振明</p>
-					<span class="user-info-pri-clock">积分: <span style="color:rgb(249,231,0) ;">800</span></span>
+					<p>{{userInfo.userName}}</p>
+					<p class="user-info-pri-clock">
+						积分:
+						<span style="color:rgb(249,231,0) ;">
+							{{userInfo.integral}}
+						</span>
+					</p>
 				</div>
 			</view>
 		</view>
@@ -52,15 +58,15 @@
 		<view class="home-card">
 			<div class="home-card-container">
 				<div class="now-date">
-					<p style="font-size: 1.5rem;">11</p>
-					<p style="font-size: 0.7rem;">2020.03</p>
+					<p style="font-size: 1.5rem;">{{nowDate.getDate()}}</p>
+					<p style="font-size: 0.7rem;">{{(nowDate.getFullYear())+'.'+(nowDate.getMonth()+1)}}</p>
 				</div>
 				
-				<div class="getup-time">
+				<div class="getup-time" v-show="blockState=='1'">
 					<p style="color: #FFFFFF;font-size: 0.6rem;">今日早起</p>
-					<p style="color:rgb(249,231,0);font-size: 1.5rem;">8:30</p>
+					<p style="color:rgb(249,231,0);font-size: 1.5rem;">{{blockTime}}</p>
 				</div>
-				<button class="signin-ime-btn">
+				<button class="signin-ime-btn" @click="punchClockRouter">
 					<u-icon name="map"></u-icon>
 					<span>立即打卡</span>
 				</button>
@@ -76,13 +82,15 @@
 </template>
 
 <script>
-	import '../../global/js/rem.js'
 	export default{
 		data() {
 			return {
-				src: '../../static/photo/boy.jpg',
+				src: '../../static/photo/pig.webp',
 				text:'456',
 				show:false,
+				blockState:'0',
+				blockTime:'',
+				nowDate:new Date(),
 				weatherInfo:{
 					cityName:'',
 					tq:'',
@@ -91,9 +99,12 @@
 				}
 			}
 		},
+		onLoad() {
+			this.getClockStage()
+		},
 		methods: {
 			async getWeatherInfo(){
-				const {data:res} =await this.$http.get('http://api.yytianqi.com/observe?city=CH250201&key=8pl5iguhg14kqffp')  
+				let responce =await this.$http('get',{},'http://api.yytianqi.com/observe?city=CH250201&key=8pl5iguhg14kqffp')  
 				console.log(res);
 				if(res.code === 1){
 					this.weatherInfo.cityName = res.data.cityName
@@ -102,6 +113,16 @@
 					this.weatherInfo.fl = res.data.fl
 				}
 				this.show = true
+			},
+			async getClockStage(){
+				let responce =await this.$http('post',{},'/getClockState')  
+				const res = responce[1].data
+				console.log(responce);
+				if(this.checkReq(res.meta.status)){
+					this.blockState = res.data.blockState
+					this.blockTime = res.data.blockTime
+					console.log("clockState",this.clockState);
+				}
 			},
 			punchClockRouter(){
 				uni.navigateTo({
@@ -183,14 +204,13 @@
 	margin: 0 auto;
 }
 .home-card{
-	position: absolute;
+	/* position: absolute; */
 	width:100vw;
 	height:75vh;
 	bottom: 0;
 	height: 75vh;
-	border: 1px solid red;
 	background-color: #FFFFFF;
-	border-radius: 20px;
+	border-radius: 20px 20px 0 0;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -199,7 +219,8 @@
 	width: 95vw;
 	height: 70vh;
 	border-radius: 20px;
-	background: url('../../static/photo/homecard.jpg');
+	background: url('../../static/photo/homecard1.png');
+	background-size: 100% 100%;
 	position: relative;
 }
 .now-date{

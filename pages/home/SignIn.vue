@@ -1,32 +1,48 @@
 <template>
   <div>
+	<page-meta :root-font-size="fontSize"></page-meta>	
+	 <u-navbar back-text="返回" title="每日打卡" :custom-back="backPage"></u-navbar>
     <div class="top-title">
-	  <div><span @click="lastMonth" class="link">⋘</span></div>
 	  <div><span>{{currentMonth.year}}年{{currentMonth.month}}月</span></div>
-	  <div><span @click="nextMonth" class="link">⋙</span></div>
+	  <div class="month-change-btn-grounp">
+		  <div class="month-change-btn" @click="lastMonth">
+			  <u-icon 
+				  size="25" 
+				  name="arrow-left">
+			  </u-icon>
+		  </div>
+		  <div class="month-change-btn" @click="nextMonth">
+				  <u-icon 
+					  size="25" 
+					  name="arrow-right">
+				  </u-icon>
+		  </div>
+	  </div>
+		  
 	</div>
-    <div class="container" style="border-bottom: 1px solid #cccccc;color: #999999;">
-      <div v-for="(item,index) in weeks" :key="index">{{ item }}</div>
-    </div>
-    <div class="container" style="padding: 1vh 1vh 3vh 1vh;">
-      <div v-for="(item,index) in dayInfo" :key="index">
-        <div v-if="compareToNow(item) === 0" class="date-num clocked-in " >{{ item.day }}</div>
-        <div v-if="compareToNow(item) === 1" class="date-num ">{{ item.day }}</div>
-        <div v-if="compareToNow(item) === -1" class="date-num" :class="item.isClock==='1'?'clocked-in':'not-clocked-in'">
-          <div>{{ item.day }}</div>
-        </div>
-      </div>
-    </div>
+	<div class="calendar-card">
+		<div 
+			class="container" 
+			style="border-bottom: 1px solid #cccccc;
+			color: #999999;font-size: 0.6rem;
+			padding: 0 1vh 0 1vh">
+			<div v-for="(item,index) in weeks" :key="index">{{ item }}</div>
+		</div>
+		<div class="container" style="padding: 1vh 1vh 3vh 1vh;margin-bottom: 1rem;">
+			<div v-for="(item,index) in dayInfo" :key="index">
+				<div v-if="compareToNow(item) === 0" class="date-num clocked-in " >{{ item.day }}</div>
+				<div v-if="compareToNow(item) === 1" class="date-num ">{{ item.day }}</div>
+				<div v-if="compareToNow(item) === -1" class="date-num" :class="item.isClock==='1'?'clocked-in':'not-clocked-in'">
+				  <div>{{ item.day }}</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	
-	<u-button class="sigin-btn" hair-line ripple @click="punchClock" :style="{backgroundColor:(!nowTime.isClockToday?'rgb(255,235,66)':'skyblue')}">
-		<span  v-if="!nowTime.isClockToday">打卡</span>
-		<transition-group 
-		  name="fade"
-		  enter-active-class="animated fadeIn"
-		  leave-active-class="animated fadeOut" 
-		  appear>
-		  <u-image v-if="nowTime.isClockToday" :src="'../../static/icon/right.png'" :key="2"  width="50px" height="50px"></u-image>
-		</transition-group>
+   
+	<u-button class="sigin-btn" hair-line ripple @click="punchClock" :style="{backgroundColor:(blockState=='0'?'rgb(255,235,66)':'skyblue')}">
+		<span  v-show="blockState=='0'">打卡</span>
+		<u-image v-show="blockState=='1'" :src="'../../static/icon/right.png'" :key="2"  width="50px" height="50px"></u-image>
 	</u-button>
 	
 	
@@ -35,6 +51,7 @@
 
 
 <script>
+import dayjs from 'dayjs'
 export default {
   data() {
     return {
@@ -42,6 +59,7 @@ export default {
       today:new Date(),
       weeks:["SUN","MON","TUE","WED","THU","FRI","SAT"],
       firstDay:'',
+	  blockState:'0',
       dayInfo:[],
 	  nowTime:{
 		  year:'',
@@ -59,25 +77,28 @@ export default {
   onLoad() {
     this.userId = uni.getStorageSync('userId')
     this.getClockInfo()
+	this.getClockStage()
   },
   methods:{
 	async getClockInfo(){
 		console.log("获取的userId",JSON.stringify(this.userId));
-		const {data:res} = await this.$http.post('/getClockInfo',{userId:uni.getStorageSync('userId'),currentMonth:this.currentMonth})
+		console.log("currentmonth",JSON.stringify(this.currentMonth) );
+		// const {data:res} = await this.$http.post('/getClockInfo',{userId:uni.getStorageSync('userId'),currentMonth:this.currentMonth})
+		const responce = await this.$http('post',{currentMonth:this.currentMonth},'/getClockInfo')
+		const res = responce[1].data
 		console.log(res);
 		if(res.meta.status===201){
 			 this.dayInfo = res.data.monthClockInfo 
 			 this.firstDay = res.data.nowMonthInfo.firstDayOfMonth
 			 this.nowTime = res.data.nowDay
-			 console.log("dayInfo",JSON.stringify(this.dayInfo) );
-			 console.log("firstDay",JSON.stringify(this.firstDay) );
-			 console.log("nowTime",JSON.stringify(this.nowTime) );
 		}
 	},
 	async punchClock(){
-		 if(this.nowTime.isClockToday) return
+		 if(this.blockState=='1') return
 		 console.log(uni.getStorageSync('userId'));
-		  const {data:res} = await this.$http.post('/punchClock',{userId:uni.getStorageSync('userId')})
+		  // const {data:res} = await this.$http.post('/punchClock',{userId:uni.getStorageSync('userId')})
+		  const responce = await this.$http('post',{},'/punchClock')
+		  const res = responce[1].data
 		  console.log(res);
 		  if(res.meta.status===201){
 			this.dayInfo = res.data.monthClockInfo
@@ -88,6 +109,16 @@ export default {
 			});
 		  }
 		  
+	 },
+	 async getClockStage(){
+	 	let responce =await this.$http('post',{},'/getClockState')  
+	 	const res = responce[1].data
+	 	console.log(responce);
+	 	if(this.checkReq(res.meta.status)){
+	 		this.blockState = res.data.blockState
+	 		this.blockTime = res.data.blockTime
+	 		console.log("clockState",this.clockState);
+	 	}
 	 },
 
 	//切换到上月
@@ -141,32 +172,65 @@ export default {
           return -1
         }
       }
-    }
+    },
+	backPage(){
+		uni.redirectTo({
+			url:'./HomeCenter'
+		})
+	}
   }
 }
 </script>
 
 
 <style scoped Lang="less">
+	page{
+		background-color: rgb(51,49,82);
+	}
   .top-title{
-    display: grid;
-    grid-template-columns:repeat(3,1fr);
-    grid-auto-rows:40px;
-    grid-gap:1rem;
-    background-color: #FFFFFF;
-    border-bottom: 1px solid #cccccc;
-    line-height: 40px;
-	text-align: center;
+   display: flex;
+   justify-content: space-between;
+   padding: 0.5rem 1rem 0.5rem 1rem;
+   /* border: 1px solid red; */
+  }
+  .top-title span{
+	  font-size: 1rem;
+	  font-weight: 600;
+	  color: #FFFFFF;
+
+  }
+  .month-change-btn-grounp{
+	  display: flex;
+	  width: 3rem;
+	  justify-content: space-between;
+  }
+  .month-change-btn{
+	  width: 1.2rem;
+	  height: 1.2rem;
+	  background-color: #FFFFFF;
+	  border-radius: 50%;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  
+  }
+  .calendar-card{
+	  padding-top: 0.5rem;
+	  padding-bottom: 0.5rem;
+	  width: 90%;
+	  margin: 0 auto;
+	  border-radius: 15px;
+	  background-color: #FFFFFF;
+	   box-shadow: 0 1px 5px #999999;
   }
   .container{
     display: grid;
     grid-template-columns:repeat(7,1fr);
-    grid-auto-rows:40px;
-    grid-gap:1rem;
+    grid-auto-rows:30px;
+    grid-gap:0.8rem;
     background-color: #FFFFFF;
-    line-height: 40px;
+    line-height: 30px;
 	text-align: center;
-
     div{
       text-align: center;
     }
@@ -177,6 +241,7 @@ export default {
     color: #2d8cf0;
   }
   .date-desc{
+
     display: block;
     position: absolute;
     top: 6.8vw;
@@ -184,8 +249,13 @@ export default {
     font-size: 2.3vw;
     color: green;
   }
-  .date-num{ 
+  .date-num{
+	  width: 1.5rem;
+	  height: 1.5rem;
 	  border-radius: 50%;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
   }
   .today{
   	border: 1px solid rgb(73,103,177);
@@ -200,6 +270,7 @@ export default {
 	   background-color: rgb(242,245,250);
   }
   .sigin-btn{
+	  
 	  width: 6rem;
 	  height: 6rem;
 	  border-radius: 50%;

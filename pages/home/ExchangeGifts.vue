@@ -1,7 +1,17 @@
 <template>
 	<view>
-		<u-navbar back-text="返回" title="兑换礼品"></u-navbar>
-		<!-- <u-tabs-swiper ref="tabs" :list="tabLists" :is-scroll="false"></u-tabs-swiper> -->
+		<u-navbar back-text="返回" title="兑换礼品" :custom-back="backPage"></u-navbar>
+		<view class="user-inergral-view">
+			<view class="user-inergral-box">
+				<u-image
+					width="1rem"
+					height="1rem"
+					:src="'../../static/icon/coin.png'">
+				</u-image>
+				<span>{{userIntergral}}</span>
+			</view>
+		</view>
+		
 		<u-waterfall v-model="flowList" ref="uWaterfall" class="gift-lists">
 			<template v-slot:left="{leftList}">
 				<view class="gift-card" v-for="(item, index) in leftList" :key="index">
@@ -26,7 +36,7 @@
 							<span>{{item.price}}</span>
 						</div>
 						
-						<button class="exchange-btn">兑换</button>
+						<button class="exchange-btn" @click="exchangeGiftShow=true,currentGiftIntegral=item.price">兑换</button>
 					</view>
 				</view>
 			</template>
@@ -37,7 +47,7 @@
 						height="80%"
 						:lazy-load="true"
 						mode="scaleToFill"
-						:src="'../../static/photo/gift_milktea.jpeg'" 
+						:src="item.image" 
 						class="gift-image">
 					</u-image>
 					<view class="gift-title">
@@ -46,15 +56,28 @@
 					<view class="gift-exchange">
 						<div class="gift-price">
 							<u-image 
-							width="1rem"
-							height="1rem"
-							:src="'../../static/icon/coin.png'">
+								width="1rem"
+								height="1rem"
+								:src="'../../static/icon/coin.png'">
 							</u-image>
 							<span>{{item.price}}</span>
 						</div>
-						<button class="exchange-btn" @click="exchangeGiftShow=true">兑换</button>
+						<button class="exchange-btn" @click="exchangeGiftShow=true,currentGiftIntegral=item.price">兑换</button>
 					</view>
-					<u-modal v-model="exchangeGiftShow">确定兑换此礼品吗</u-modal>
+					<u-modal 
+						title="兑换礼品"
+						v-model="exchangeGiftShow"
+						show-cancel-button
+						@confirm="exchangeGift">
+						<view class="slot-content exchange-confirm-view">
+							<u-image
+								width="5rem"
+								height="5rem"
+								:src="'../../static/photo/gift_milktea.jpeg'">
+							</u-image>
+							<p>您确定使用<span style="color: rgb(227, 208, 0);">100积分</span>兑换<span>奶茶一杯吗?</span></p>
+						</view>
+					</u-modal>	
 				</view>
 			</template>
 		</u-waterfall>
@@ -65,6 +88,9 @@
 	export default{
 		data(){
 			return{
+				currentGiftIntegral:0,
+				userIntergral:0,
+				exchangeGiftShow:false,
 				tabLists:[{
 					name: '全部礼品'
 				}, {
@@ -79,24 +105,24 @@
 				list: [
 					{
 						price: 100,
-						title: '任意奶茶一杯',
+						title: '奶茶一杯',
 						image: '../../static/photo/gift_milktea.jpeg',
 					},
 					{
 						price: 100,
-						title: '任意外卖',
+						title: '奶茶一杯',
 						image: '../../static/photo/gift_milktea.jpeg',
 					},
 					{
 						price: 100,
-						title: '任意奶茶一杯',
+						title: '奶茶一杯',
 						image: '../../static/photo/gift_milktea.jpeg',
 					},
 				],
-				exchangeGiftShow:false
 			}
 		},
 		onLoad() {
+			this.userIntergral = uni.getStorageSync('userInfo').integral
 			this.addRandomData();
 		},
 		onReachBottom() {
@@ -117,6 +143,37 @@
 					this.flowList.push(item);
 				}
 			},
+			async exchangeGift(){
+				console.log("current",this.currentGiftIntegral);
+				// const {data:res} = await this.$http.post('/exchange',this.currentGiftIntegral)
+				const responce = await this.$http('post',{currentGiftIntegral:this.currentGiftIntegral},'/exchange')
+				const res = responce[1].data
+				console.log(res);
+				if(this.checkReq(res.meta.status)){
+					if(res.data.exchangeStatus){
+						this.userIntergral = res.data.userIntegral
+						uni.setStorageSync('userInfo',
+						{userId:this.userInfo.userId,userName:this.userInfo.userName,integral:res.data.userIntegral})
+						uni.showToast({
+							title: '兑换成功!',
+							duration: 2000
+						});
+					}else{
+						uni.showToast({
+							title: '积分不够哦QAQ',
+							duration: 2000,
+							icon:'error'
+						});
+					}
+				}
+				this.exchangeGiftShow = false
+				
+			},
+			backPage(){
+				uni.redirectTo({
+					url:'./HomeCenter'
+				})
+			}
 		}	
 	}
 </script>
@@ -129,8 +186,26 @@
 	page{
 		background-color: rgb(246,246,246);
 	}
+	.user-inergral-view{
+		height:35px;
+		display: flex;
+		align-items: center;
+		position: relative;
+	}
+	.user-inergral-box{
+		width: 5rem;
+		height: 25px;
+		border-radius: 15px;
+		display: flex;
+		background-color: rgb(70,76,130);
+		color: #FFFFFF;
+		justify-content: center;
+		align-items: center;
+		position: absolute;
+		right: 5%;
+	}
 	.gift-lists{
-		margin-top: 1rem;
+		/* margin-top: 1rem; */
 	}
 	.gift-card{
 		width: 50vw;
@@ -165,5 +240,15 @@
 		background-color: rgb(251,236,234);
 		color:red;
 		border-radius: 5px;
+	}
+	.exchange-confirm-view{
+		font: 18px;
+		text-align: center;
+	}
+	.exchange-confirm-view .u-image{
+		margin: 0 auto;
+	}
+	.exchange-confirm-view span{
+		font-weight: 600;
 	}
 </style>

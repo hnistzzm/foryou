@@ -63,20 +63,35 @@
 					]
 				}
 			}
+		},	
+		onLoad() {
+			this.loginForm.userName = uni.getStorageSync('userPassWord').userName || ''
+			this.loginForm.passWord = uni.getStorageSync('userPassWord').passWord || ''
+			if(this.loginForm.passWord.length){
+				this.isRemPassword=true
+			}
 		},
-			// 必须要在onReady生命周期，因为onLoad生命周期组件可能尚未创建完毕
-		
 		methods: {
 			 async login(){
 				console.log("进入登录函数了");
-					const {data:res} = await this.$http.post('/login',this.loginForm)
-					console.log(JSON.stringify(res));
-					uni.setStorage('userId',res.data.userInfo.userId)
+				uni.removeStorageSync('token')
+				this.$refs.userLoginRef.validate(async valid=>{
+					const responce = await this.$http('post',this.loginForm,'/login')
+					const res = responce[1].data
+					this.userInfo = res.data.userInfo
+					if(this.isRemPassword){
+						uni.setStorageSync('userPassWord',this.loginForm)
+					}else{
+						uni.removeStorageSync('userPassWord')
+					}
+					uni.setStorageSync('userInfo',res.data.userInfo)
+					uni.setStorageSync('token',res.data.Token)
 					console.log(JSON.stringify(uni.getStorageSync('userId')) );
 					uni.navigateTo({
 						url:'../home/HomeCenter'
 					})
-			   
+					
+				})
 			}
 		}
 	}
